@@ -52,26 +52,34 @@ const a = toNumber(args[1]);
 const b = toNumber(args[2]);
 let result;
 
-switch (cmd) {
-  case 'add':
-    result = a + b;
-    break;
-  case 'sub':
-    result = a - b;
-    break;
-  case 'mul':
-    result = a * b;
-    break;
-  case 'div':
-    if (b === 0) {
-      console.error('Error: Division by zero');
-      process.exit(3);
-    }
-    result = a / b;
-    break;
-  default:
-    console.error('Unsupported operation');
-    process.exit(1);
+const core = require('./calculator-core');
+
+try {
+  switch (cmd) {
+    case 'add':
+      result = core.add(a, b);
+      break;
+    case 'sub':
+      result = core.sub(a, b);
+      break;
+    case 'mul':
+      result = core.mul(a, b);
+      break;
+    case 'div':
+      result = core.div(a, b);
+      break;
+    default:
+      console.error('Unsupported operation');
+      process.exit(1);
+  }
+} catch (err) {
+  // Handle division-by-zero and other errors
+  if (err && err.message && err.message.includes('Division by zero')) {
+    console.error('Error: Division by zero');
+    process.exit(3);
+  }
+  console.error(err && err.message ? err.message : String(err));
+  process.exit(1);
 }
 
 // Print result to stdout

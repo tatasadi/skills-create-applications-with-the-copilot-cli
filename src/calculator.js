@@ -7,12 +7,15 @@
 //  - div : division (a / b)  (division by zero is handled)
 
 function usage() {
-  console.error('Usage: node calculator.js <add|sub|mul|div> <num1> <num2>');
+  console.error('Usage: node calculator.js <add|sub|mul|div|mod|pow|sqrt> <num1> <num2>');
   console.error('Examples:');
   console.error('  node calculator.js add 2 3    => 5');
   console.error('  node calculator.js sub 5 2    => 3');
   console.error('  node calculator.js mul 4 6    => 24');
   console.error('  node calculator.js div 10 2   => 5');
+  console.error('  node calculator.js mod 10 3   => 1');
+  console.error('  node calculator.js pow 2 8    => 256');
+  console.error('  node calculator.js sqrt 9     => 3');
 }
 
 function toNumber(value) {
@@ -36,20 +39,28 @@ if (cmd === '-h' || cmd === '--help' || cmd === 'help') {
   process.exit(0);
 }
 
-if (!['add', 'sub', 'mul', 'div'].includes(cmd)) {
+if (!['add', 'sub', 'mul', 'div', 'mod', 'pow', 'sqrt'].includes(cmd)) {
   console.error(`Unknown command: ${cmd}`);
   usage();
   process.exit(1);
 }
 
-if (args.length < 3) {
-  console.error('Error: two numeric operands are required.');
-  usage();
-  process.exit(1);
+if (cmd === 'sqrt') {
+  if (args.length < 2) {
+    console.error('Error: one numeric operand is required for sqrt.');
+    usage();
+    process.exit(1);
+  }
+} else {
+  if (args.length < 3) {
+    console.error('Error: two numeric operands are required.');
+    usage();
+    process.exit(1);
+  }
 }
 
 const a = toNumber(args[1]);
-const b = toNumber(args[2]);
+const b = args.length > 2 ? toNumber(args[2]) : undefined;
 let result;
 
 const core = require('./calculator-core');
@@ -68,15 +79,28 @@ try {
     case 'div':
       result = core.div(a, b);
       break;
+    case 'mod':
+      result = core.modulo(a, b);
+      break;
+    case 'pow':
+      result = core.power(a, b);
+      break;
+    case 'sqrt':
+      result = core.squareRoot(a);
+      break;
     default:
       console.error('Unsupported operation');
       process.exit(1);
   }
 } catch (err) {
-  // Handle division-by-zero and other errors
+  // Handle division-by-zero, square-root-negative, and other errors
   if (err && err.message && err.message.includes('Division by zero')) {
     console.error('Error: Division by zero');
     process.exit(3);
+  }
+  if (err && err.message && err.message.includes('Square root of negative')) {
+    console.error('Error: Square root of negative number');
+    process.exit(4);
   }
   console.error(err && err.message ? err.message : String(err));
   process.exit(1);
